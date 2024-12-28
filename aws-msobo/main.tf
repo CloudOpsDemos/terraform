@@ -33,3 +33,14 @@ resource "aws_s3_bucket_versioning" "msobo_terraform" {
     status = "Enabled"
   }
 }
+
+resource "aws_dynamodb_table" "msobo_terraform_state_lock" {
+  name = "msobo-msobo-terraform-state-lock"
+  read_capacity = 2
+  write_capacity = 1
+  hash_key = "LockID"
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}
