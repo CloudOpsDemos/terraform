@@ -11,6 +11,7 @@ terraform {
     region         = "us-west-2"
     profile        = "msobo"
     key            = "terraform.tfstate"
+    dynamodb_table = "msobo-msobo-terraform-state-lock"
   }
 }
 
