@@ -10,7 +10,7 @@ terraform {
     bucket         = "msobo-terraform"
     region         = "us-west-2"
     profile        = "msobo"
-    key            = "terraform.tfstate"
+    key            = "msobo-terraform.tfstate"
     dynamodb_table = "msobo-msobo-terraform-state-lock"
   }
 }
@@ -24,7 +24,7 @@ provider "aws" {
 resource "aws_s3_bucket"  "msobo_terraform" {
   bucket = "msobo-terraform"
   tags = {
-    Environment = "Terraform"
+    Name = "msobo-terraform"
   }
 }
 
@@ -43,5 +43,8 @@ resource "aws_dynamodb_table" "msobo_terraform_state_lock" {
   attribute {
     name = "LockID"
     type = "S"
+  }
+  tags = {
+    Name = "msobo-terraform"
   }
 }
