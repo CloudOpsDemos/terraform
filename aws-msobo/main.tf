@@ -11,7 +11,7 @@ terraform {
     region         = "us-west-2"
     profile        = "msobo"
     key            = "msobo-terraform.tfstate"
-    dynamodb_table = "msobo-msobo-terraform-state-lock"
+    dynamodb_table = "msobo-terraform-state-lock"
   }
 }
 
@@ -35,8 +35,8 @@ resource "aws_s3_bucket_versioning" "msobo_terraform" {
   }
 }
 
-resource "aws_dynamodb_table" "msobo_terraform_state_lock" {
-  name = "msobo-msobo-terraform-state-lock"
+resource "aws_dynamodb_table" "msobo_terraform_state_lock1" {
+  name = "msobo-terraform-state-lock"
   read_capacity = 2
   write_capacity = 1
   hash_key = "LockID"
