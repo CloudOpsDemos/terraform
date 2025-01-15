@@ -1,3 +1,8 @@
+locals {
+  region              = "us-west-2"
+  availability_zones  = ["us-west-2a", "us-west-2b"]
+}
+
 terraform {
   required_version    = ">= 1.10.0"
   required_providers {
@@ -17,7 +22,7 @@ terraform {
 
 provider "aws" {
   profile = "msobo"
-  region  = "us-west-2"
+  region  = local.region
 }
 
 # backend

@@ -1,6 +1,6 @@
 resource "aws_vpc" "k8s-vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
+  cidr_block            = "10.0.0.0/16"
+  enable_dns_hostnames  = true
 
   tags = {
     Name = "${terraform.workspace}-k8s-vpc"
@@ -37,6 +37,10 @@ resource "aws_route_table" "k8s-priv-rt" {
   vpc_id = aws_vpc.k8s-vpc.id
 
   route {
+    cidr_block  = "0.0.0.0/0"
+    gateway_id  = aws_nat_gateway.k8s-ngw.id
+  }
+  route {
     cidr_block = "10.0.0.0/16"
     gateway_id = "local"
   }
@@ -46,58 +50,38 @@ resource "aws_route_table" "k8s-priv-rt" {
   }
 }
 
-resource "aws_subnet" "k8s-pub-1" {
+resource "aws_subnet" "k8s-pub" {
   vpc_id            = aws_vpc.k8s-vpc.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-west-2a"
+  count             = length(local.availability_zones)
+  cidr_block        = cidrsubnet(aws_vpc.k8s-vpc.cidr_block, 8, count.index+1)
+  availability_zone = element(local.availability_zones, count.index)
 
   tags = {
-    Name = "${terraform.workspace}-k8s-pub-1"
+    Name = "${terraform.workspace}-k8s-pub-${count.index+1}"
   }
 }
 
-resource "aws_subnet" "k8s-pub-2" {
+resource "aws_subnet" "k8s-priv" {
   vpc_id            = aws_vpc.k8s-vpc.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-west-2c"
+  count             = length(local.availability_zones)
+  cidr_block        = cidrsubnet(aws_vpc.k8s-vpc.cidr_block, 8, count.index+101)
+  availability_zone = element(local.availability_zones, count.index)
 
   tags = {
-    Name = "${terraform.workspace}-k8s-pub-2"
-  }
-}
-
-resource "aws_subnet" "k8s-priv-1" {
-  vpc_id            = aws_vpc.k8s-vpc.id
-  cidr_block        = "10.0.100.0/24"
-  availability_zone = "us-west-2b"
-
-  tags = {
-    Name = "${terraform.workspace}-k8s-priv-1"
-  }
-}
-
-resource "aws_subnet" "k8s-priv-2" {
-  vpc_id            = aws_vpc.k8s-vpc.id
-  cidr_block        = "10.0.101.0/24"
-  availability_zone = "us-west-2d"
-
-  tags = {
-    Name = "${terraform.workspace}-k8s-priv-2"
+    Name = "${terraform.workspace}-k8s-priv-${count.index+1}"
   }
 }
 
 resource "aws_route_table_association" "k8s-pub" {
-  for_each = toset([aws_subnet.k8s-pub-1.id, aws_subnet.k8s-pub-2.id])
-
-  subnet_id = each.key
-  route_table_id = aws_vpc.k8s-vpc.default_route_table_id
+  route_table_id  = aws_vpc.k8s-vpc.default_route_table_id
+  count           = length(local.availability_zones)
+  subnet_id       = element(aws_subnet.k8s-pub[*].id, count.index)
 }
 
 resource "aws_route_table_association" "k8s-priv" {
-  for_each = toset([aws_subnet.k8s-priv-1.id, aws_subnet.k8s-priv-2.id])
-
-  subnet_id = each.key
-  route_table_id = aws_route_table.k8s-priv-rt.id
+  route_table_id  = aws_route_table.k8s-priv-rt.id
+  count           = length(local.availability_zones)
+  subnet_id       = element(aws_subnet.k8s-priv[*].id, count.index)
 }
 
 resource "aws_default_network_acl" "k8s-default-nacl" {
@@ -145,5 +129,24 @@ resource "aws_default_security_group" "k8s-default-sg" {
 
   tags = {
     Name = "${terraform.workspace}-k8s-default-sg"
+  }
+}
+
+resource "aws_eip" "k8s-eip" {
+  vpc = true
+  depends_on = [aws_internet_gateway.k8s-igw]
+
+  tags = {
+    Name = "${terraform.workspace}-k8s-eip"
+  }
+}
+
+resource "aws_nat_gateway" "k8s-ngw" {
+  subnet_id     = element(aws_subnet.k8s-priv[*].id, 0)
+  allocation_id = aws_eip.k8s-eip.id
+  depends_on    = [aws_internet_gateway.k8s-igw]
+
+  tags = {
+    Name = "${terraform.workspace}-k8s-ngw"
   }
 }
