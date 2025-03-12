@@ -17,6 +17,10 @@ locals {
 
 data "aws_caller_identity" "current" {}
 
+data "aws_route53_zone" "arbitrick" {
+  name = "arbitrick.click"
+}
+
 terraform {
   required_version = ">= 1.10.0"
   required_providers {
@@ -38,3 +42,17 @@ provider "aws" {
   profile = "msobo"
   region  = "us-west-2"
 }
+
+# Kubernetes provider
+data "aws_eks_cluster_auth" "cluster_auth" {
+  name = module.eks.cluster_name
+}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.cluster_auth.token
+}
+
+# ADD KUBE_CONFIG_PATH TO ENVIRONMENT
+# OR https://github.com/terraform-aws-modules/terraform-aws-eks/issues/1234

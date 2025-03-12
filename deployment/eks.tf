@@ -41,5 +41,70 @@ module "eks" {
   # completed. Therefore raising this from its default 30s 
   dataplane_wait_duration = "60s"
 
+  depends_on = [ module.vpc ]
+
 }
 
+locals {
+  node_security_group_id = module.eks.node_security_group_id
+}
+
+# Create VPC endpoints (Private Links) for SSM Session Manager access to nodes
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name   = "vpc-endpoint-sg"
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    description     = "Allow EKS Nodes to access VPC Endpoints"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [local.node_security_group_id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Environment = local.prefix_env
+    Terraform   = "true"
+  }
+}
+
+resource "aws_vpc_endpoint" "private_link_s3" {
+
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = module.vpc.private_route_table_ids
+
+  tags = {
+    Environment = local.prefix_env
+    Terraform   = "true"
+  }
+}
+
+#Create kubernetes namespaces
+locals {
+    namespaces = [
+        "infrastructure",
+        "github-runners"
+    ]
+}
+
+resource "kubernetes_namespace" "namespaces" {
+  for_each = toset(local.namespaces)
+  metadata {
+    name = each.value
+    labels = {
+      Name        = each.value
+      Environment = local.prefix_env
+      Terraform   = true
+    }
+  }
+  depends_on = [ module.eks ]
+}
