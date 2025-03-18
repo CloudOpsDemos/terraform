@@ -8,11 +8,10 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/load-balancer-name: alb-2048
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-2016-08
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
-    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
-    # alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
-    # alb.ingress.kubernetes.io/ssl-ports: '[443]'
-    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:408366312244:certificate/afb8c326-8eff-4ea7-953c-0cbc2bea2d17
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/ssl-ports: '[443]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:408366312244:certificate/afb8c326-8eff-4ea7-953c-0cbc2bea2d17
 spec:
   ingressClassName: alb
   rules:

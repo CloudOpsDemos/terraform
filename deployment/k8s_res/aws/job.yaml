@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-2048
+  namespace: game-2048
+  labels:
+    app: job-2048
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: app-2048
+    spec:
+      containers:
+        - name: app-2048
+          image: busybox:1.28
+          imagePullPolicy: Always
+          command: ["sh", "-c", "echo 'Hello, Kubernetes!' > /home/2048/my_hello.txt"]
+          volumeMounts:
+            - name: auto-ebs-pvc
+              mountPath: /home/2048
+      volumes:
+        - name: auto-ebs-pvc
+          persistentVolumeClaim:
+            claimName: auto-ebs-pvc
+      restartPolicy: Never
+  backoffLimit: 1

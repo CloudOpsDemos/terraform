@@ -48,11 +48,11 @@ data "aws_eks_cluster_auth" "cluster_auth" {
   name = module.eks.cluster_name
 }
 
-provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-  token                  = data.aws_eks_cluster_auth.cluster_auth.token
-}
+# provider "kubernetes" {
+#   host                   = module.eks.cluster_endpoint
+#   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+#   token                  = data.aws_eks_cluster_auth.cluster_auth.token
+# }
 
 # ADD KUBE_CONFIG_PATH TO ENVIRONMENT
 # OR https://github.com/terraform-aws-modules/terraform-aws-eks/issues/1234

@@ -15,6 +15,14 @@ spec:
       labels:
         app.kubernetes.io/name: app-2048
     spec:
+      initContainers:
+        - name: init-2048
+          image: busybox:1.28
+          imagePullPolicy: Always
+          command: ["sh", "-c", "chown -R 1000:0 /home/2048"]
+          volumeMounts:
+            - name: auto-ebs-pvc
+              mountPath: /home/2048
       containers:
         - name: app-2048
           image: public.ecr.aws/l6m2t8p7/docker-2048:latest
@@ -26,4 +34,11 @@ spec:
               cpu: "0.5"
             limits:
               cpu: "2"
+          volumeMounts:
+            - name: auto-ebs-pvc
+              mountPath: /home/2048
+      volumes:
+        - name: auto-ebs-pvc
+          persistentVolumeClaim:
+            claimName: auto-ebs-pvc
           
