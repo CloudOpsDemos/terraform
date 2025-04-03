@@ -4,15 +4,15 @@
 # data.aws_region.current.name
 
 locals {
-  prefix = "msobo"
-  prefix_env = "${local.prefix}-${var.env_name}"
-  cluster_name = "${local.prefix_env}-eks-cluster"
+  prefix          = "msobo"
+  prefix_env      = "${local.prefix}-${var.env_name}"
+  cluster_name    = "${local.prefix_env}-eks-cluster"
   cluster_version = var.eks_cluster_version
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
   ebs_claim_name = "${local.prefix_env}-ebs-storage-pv-claim"
-  
+
 }
 
 data "aws_caller_identity" "current" {}
@@ -44,15 +44,15 @@ provider "aws" {
 }
 
 # Kubernetes provider
-data "aws_eks_cluster_auth" "cluster_auth" {
-  name = module.eks.cluster_name
-}
+# data "aws_eks_cluster_auth" "cluster_auth" {
+#   name = module.eks.cluster_name
+# }
 
-provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-  token                  = data.aws_eks_cluster_auth.cluster_auth.token
-}
+# provider "kubernetes" {
+#   host                   = module.eks.cluster_endpoint
+#   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+#   token                  = data.aws_eks_cluster_auth.cluster_auth.token
+# }
 
 # ADD KUBE_CONFIG_PATH TO ENVIRONMENT
 # OR https://github.com/terraform-aws-modules/terraform-aws-eks/issues/1234
